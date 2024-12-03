@@ -5,25 +5,34 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using KuroNovel;
+using Unity.VisualScripting;
 
 namespace KuroNovelEdior
 {
     public class VNCharacterEditor : EditorWindow
     {
-        private List<VNCharacter> characters = new List<VNCharacter>();
-        private int selectedCharacterIndex = -1; // Index of the selected character
-        private Vector2 leftPanelScrollPosition; // Scroll position for left panel
-        private Vector2 rightPanelScrollPosition; // Scroll position for right panel
-
-        [MenuItem("Kuro Novel/VN Character Editor", false, 0)]
+        [MenuItem("Kuro Novel/VN Characters Editor", false, 0)]
         public static void ShowWindow()
         {
-            GetWindow<VNCharacterEditor>("VN Character Editor");
+            GetWindow<VNCharacterEditor>("VN Characters Editor");
         }
+
+        private string CharactersFolderPath => VNSettingsManager.GetSettings().CharactersFolder;
+        private const string VNCharactersAssetPath = "Assets/Resources/VNAssets/VNCharacters.asset";
+
+        private VNCharacters vnCharacters;
+        private List<CharacterNode> characters = new List<CharacterNode>();
+        private int selectedCharacterIndex = -1;
+        private Vector2 leftPanelScrollPosition;
+        private Vector2 rightPanelScrollPosition;
+        private GUIStyle nodeButtonStyle = new GUIStyle();
 
         private void OnEnable()
         {
-            //LoadCharacters(); // Load existing characters if available
+            EnsureCharactersFolderExists();
+            LoadVNCharactersAsset();
+            LoadCharactersFromFolder();
         }
 
         private void OnGUI()
@@ -34,14 +43,31 @@ namespace KuroNovelEdior
             GUILayout.BeginVertical(GUILayout.Width(300));
             leftPanelScrollPosition = GUILayout.BeginScrollView(leftPanelScrollPosition, GUILayout.ExpandHeight(true));
 
+            // Left Header
             GUILayout.Label("Characters", EditorStyles.boldLabel);
 
-            for (int i = 0; i < characters.Count; i++)
+            // Loop to show each character in system
+            for (int i = 0; i < vnCharacters.Characters.Count; i++)
             {
                 EditorGUILayout.BeginHorizontal();
 
+                if (selectedCharacterIndex == i)
+                {
+                    nodeButtonStyle.normal = new GUIStyleState
+                    {
+                        textColor = Color.cyan
+                    };
+                }
+                else
+                {
+                    nodeButtonStyle.normal = new GUIStyleState
+                    {
+                        textColor = Color.white
+                    };
+                }
+
                 // Button for selecting a character
-                if (GUILayout.Button(characters[i].CharacterName, GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button($" {i}. {vnCharacters.Characters[i].CharacterName}", nodeButtonStyle))
                     selectedCharacterIndex = i;
 
                 // Delete button for the selected character
@@ -51,7 +77,6 @@ namespace KuroNovelEdior
                 EditorGUILayout.EndHorizontal();
             }
 
-            // Add New Character Button
             if (GUILayout.Button("Add New Character"))
             {
                 AddNewCharacter();
@@ -63,47 +88,51 @@ namespace KuroNovelEdior
             // Right Panel: Character Editing
             GUILayout.BeginVertical();
 
-            if (selectedCharacterIndex >= 0 && selectedCharacterIndex < characters.Count)
+            if (selectedCharacterIndex >= 0 && selectedCharacterIndex < vnCharacters.Characters.Count)
             {
-                VNCharacter selectedCharacter = characters[selectedCharacterIndex];
+                CharacterNode selectedCharacter = vnCharacters.Characters[selectedCharacterIndex];
 
                 rightPanelScrollPosition = GUILayout.BeginScrollView(rightPanelScrollPosition, GUILayout.ExpandHeight(true));
 
                 GUILayout.Label("Edit Character", EditorStyles.boldLabel);
 
                 // Character Name
-                selectedCharacter.CharacterName = EditorGUILayout.TextField("Character Name", selectedCharacter.CharacterName);
+                string newName = EditorGUILayout.TextField("Character Name", selectedCharacter.CharacterName);
+                if (newName != selectedCharacter.CharacterName && !string.IsNullOrWhiteSpace(newName))
+                {
+                    RenameCharacterAsset(selectedCharacter, newName);
+                }
 
                 // Character Info
                 selectedCharacter.Info = EditorGUILayout.TextArea(selectedCharacter.Info, GUILayout.Height(60));
 
                 GUILayout.Space(10);
 
-                // Emotions
+                // Emotions Management
                 GUILayout.Label("Emotions", EditorStyles.boldLabel);
-                List<string> keysToRemove = new List<string>();
+                List<EmotionsNode> emotionsToRemove = new List<EmotionsNode>();
+
                 foreach (var emotion in selectedCharacter.Emotions)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    GUILayout.Label(emotion.Key, GUILayout.Width(100));
-                    selectedCharacter.Emotions[emotion.Key] = EditorGUILayout.TextField(emotion.Value);
+
+                    emotion.Emotion = EditorGUILayout.TextField("Emotion", emotion.Emotion);
+                    emotion.Sprite = (Sprite)EditorGUILayout.ObjectField("Sprite", emotion.Sprite, typeof(Sprite), false);
+
                     if (GUILayout.Button("Remove", GUILayout.Width(60)))
-                    {
-                        keysToRemove.Add(emotion.Key);
-                    }
+                        emotionsToRemove.Add(emotion);
+
                     EditorGUILayout.EndHorizontal();
                 }
 
-                // Remove emotions marked for deletion
-                foreach (var key in keysToRemove)
+                foreach (var emotion in emotionsToRemove)
                 {
-                    selectedCharacter.Emotions.Remove(key);
+                    selectedCharacter.Emotions.Remove(emotion);
                 }
 
-                // Add Emotion
-                if (GUILayout.Button("Add Emotion"))
+                if (GUILayout.Button("Add New Emotion"))
                 {
-                    selectedCharacter.Emotions.Add("New Emotion", "");
+                    selectedCharacter.Emotions.Add(new EmotionsNode { Emotion = "New Emotion", Sprite = null });
                 }
 
                 GUILayout.EndScrollView();
@@ -116,55 +145,97 @@ namespace KuroNovelEdior
             GUILayout.EndVertical();
 
             GUILayout.EndHorizontal();
+        }
 
-            // Save Button at the bottom
-            if (GUILayout.Button("Save Characters"))
+        private void EnsureCharactersFolderExists()
+        {
+            if (!Directory.Exists(CharactersFolderPath))
             {
-                SaveCharacters();
+                Directory.CreateDirectory(CharactersFolderPath);
+                AssetDatabase.Refresh();
             }
+        }
+
+        private void LoadVNCharactersAsset()
+        {
+            vnCharacters = AssetDatabase.LoadAssetAtPath<VNCharacters>(VNCharactersAssetPath);
+            if (vnCharacters == null)
+            {
+                vnCharacters = ScriptableObject.CreateInstance<VNCharacters>();
+                AssetDatabase.CreateAsset(vnCharacters, VNCharactersAssetPath);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        private void LoadCharactersFromFolder()
+        {
+            if (vnCharacters.Characters == null)
+            {
+                vnCharacters.Characters = new List<CharacterNode>();
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:CharacterNode", new[] { CharactersFolderPath });
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                CharacterNode character = AssetDatabase.LoadAssetAtPath<CharacterNode>(path);
+
+                if (character != null && !vnCharacters.Characters.Contains(character))
+                {
+                    vnCharacters.Characters.Add(character);
+                }
+            }
+
+            // Remove missing references
+            vnCharacters.Characters.RemoveAll(character => character == null);
         }
 
         private void AddNewCharacter()
         {
-            VNCharacter newCharacter = new VNCharacter { CharacterName = "New Character" };
-            characters.Add(newCharacter);
-            selectedCharacterIndex = characters.Count - 1;
+            CharacterNode newCharacter = ScriptableObject.CreateInstance<CharacterNode>();
+            newCharacter.CharacterName = "New Character";
+
+            string path = Path.Combine(CharactersFolderPath, $"{newCharacter.CharacterName}.asset");
+            path = AssetDatabase.GenerateUniqueAssetPath(path);
+
+            AssetDatabase.CreateAsset(newCharacter, path);
+            AssetDatabase.SaveAssets();
+
+            vnCharacters.Characters.Add(newCharacter);
+            selectedCharacterIndex = vnCharacters.Characters.Count - 1;
+
+            EditorUtility.SetDirty(vnCharacters);
         }
 
         private void DeleteCharacter(int index)
         {
-            if (index >= 0 && index < characters.Count)
-            {
-                characters.RemoveAt(index);
-                selectedCharacterIndex = -1;
-            }
+            if (index < 0 || index >= vnCharacters.Characters.Count) return;
+
+            CharacterNode character = vnCharacters.Characters[index];
+            string path = AssetDatabase.GetAssetPath(character);
+
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.SaveAssets();
+
+            vnCharacters.Characters.RemoveAt(index);
+            selectedCharacterIndex = -1;
+
+            EditorUtility.SetDirty(vnCharacters);
         }
 
-        private void SaveCharacters()
+        private void RenameCharacterAsset(CharacterNode character, string newName)
         {
-            string path = EditorUtility.SaveFilePanel("Save Characters", "Assets", "characters.json", "json");
-            if (!string.IsNullOrEmpty(path))
-            {
-                string json = JsonConvert.SerializeObject(characters, Formatting.Indented);
-                File.WriteAllText(path, json);
-                AssetDatabase.Refresh();
-                Debug.Log("Characters saved to: " + path);
-            }
-        }
+            string oldPath = AssetDatabase.GetAssetPath(character);
+            string newPath = Path.Combine(CharactersFolderPath, $"{newName}.asset");
 
-        private void LoadCharacters()
-        {
-            string path = EditorUtility.OpenFilePanel("Load Characters", "Assets", "json");
-            if (!string.IsNullOrEmpty(path) && File.Exists(path))
-            {
-                string json = File.ReadAllText(path);
-                characters = JsonConvert.DeserializeObject<List<VNCharacter>>(json) ?? new List<VNCharacter>();
-                Debug.Log("Characters loaded from: " + path);
-            }
-            else
-            {
-                characters = new List<VNCharacter>();
-            }
+            newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
+
+            AssetDatabase.RenameAsset(oldPath, newName);
+            AssetDatabase.SaveAssets();
+
+            character.CharacterName = newName;
+            EditorUtility.SetDirty(character);
+            EditorUtility.SetDirty(vnCharacters);
         }
     }
 }

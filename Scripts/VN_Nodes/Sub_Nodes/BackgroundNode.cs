@@ -7,7 +7,7 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class BackgroundNode : VNNode
     {
-        public string Background;
+        public Sprite Background;
 
         public BackgroundNode() => NodeType = VNNodeType.Background;
     }

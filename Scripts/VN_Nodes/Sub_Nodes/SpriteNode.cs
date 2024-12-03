@@ -7,8 +7,9 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class SpriteNode : VNNode
     {
-        public VNCharacter Character;
-        public string CharacterSprite;
+        public CharacterNode Character { get; set; }
+        public string Emotion { get; set; }
+        public Sprite CharacterSprite { get; set; }
 
         public SpriteNode() => NodeType = VNNodeType.Sprite;
     }

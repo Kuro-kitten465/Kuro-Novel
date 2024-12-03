@@ -5,7 +5,7 @@ using UnityEngine;
 namespace KuroNovel.DataNode
 {   
     [Serializable]
-    public class VNNode
+    public class VNNode : ScriptableObject
     {
         public string NodeName { get; set; }
         public VNNodeType NodeType { get; set; }

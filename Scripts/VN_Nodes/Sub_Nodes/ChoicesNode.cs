@@ -10,6 +10,7 @@ namespace KuroNovel.DataNode
     {
         public string Prompt { get; set; }
         public List<Choice> Choices { get; set; }
+        public bool HideDialogue { get; set; }
 
         public ChoicesNode()
         {

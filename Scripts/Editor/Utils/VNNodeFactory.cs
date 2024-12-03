@@ -5,39 +5,49 @@ namespace KuroNovelEdior.Utils
 {
     public static class VNNodeFactory
     {
-        public static VNNode CreateNode(VNNodeType type)
+        public static VNNode CreateNode(VNNodeType type, bool isJson)
         {
             switch (type)
             {
                 case VNNodeType.Dialogue:
-                    return new DialogueNode();
+                    return isJson ? new DialogueNode() :
+                    ScriptableObject.CreateInstance<DialogueNode>();
 
                 case VNNodeType.Choices:
-                    return new ChoicesNode();
+                    return isJson ? new ChoicesNode() :
+                    ScriptableObject.CreateInstance<ChoicesNode>();
 
                 case VNNodeType.Sprite:
-                    return new SpriteNode();
+                    return isJson ? new SpriteNode() :
+                    ScriptableObject.CreateInstance<SpriteNode>();
 
                 case VNNodeType.Background:
-                    return new BackgroundNode();
+                    return isJson ? new BackgroundNode() :
+                    ScriptableObject.CreateInstance<BackgroundNode>();
 
                 case VNNodeType.BGM:
-                    return new BGMNode();
+                    return isJson ? new BGMNode() :
+                    ScriptableObject.CreateInstance<BGMNode>();
 
                 case VNNodeType.SFX:
-                    return new SFXNode();
+                    return isJson ? new SFXNode() :
+                    ScriptableObject.CreateInstance<SFXNode>();
 
                 case VNNodeType.Animation:
-                    return new AnimationNode();
+                    return isJson ? new AnimationNode() :
+                    ScriptableObject.CreateInstance<AnimationNode>();
 
                 case VNNodeType.Video:
-                    return new VideoNode();
+                    return isJson ? new VideoNode() :
+                    ScriptableObject.CreateInstance<VideoNode>();
 
                 case VNNodeType.Live2D:
-                    return new Live2DNode();
+                    return isJson ? new Live2DNode() :
+                    ScriptableObject.CreateInstance<Live2DNode>();
 
                 case VNNodeType.SpecialEvent:
-                    return new SpecialEventNode();
+                    return isJson ? new SpecialEventNode() :
+                    ScriptableObject.CreateInstance<SpecialEventNode>();
 
                 default:
                     Debug.LogError($"Unknown node type: {type}");
