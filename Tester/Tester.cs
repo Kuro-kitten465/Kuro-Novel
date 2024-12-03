@@ -1,16 +1,12 @@
 using KuroNovel.DataNode;
 using KuroNovel.Manager;
+using TMPro;
 using UnityEngine;
 
 public class Tester : MonoBehaviour
 {
     [SerializeField] private VNSequence sequence;
+    [SerializeField] private TextMeshProUGUI textMeshProUGUI;
 
-    private void OnGUI()
-    {
-        if (GUILayout.Button("Test"))
-        {
-            VNManager.Instance.StartVN(sequence);
-        }
-    }
+    public void ONNN() => VNManager.Instance.StartVN(sequence);
 }

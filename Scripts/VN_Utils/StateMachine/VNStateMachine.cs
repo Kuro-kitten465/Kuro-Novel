@@ -1,57 +1,71 @@
 using UnityEngine;
+using KuroNovel.Utils;
+using System.Collections.Generic;
+using System;
+using TMPro;
 using KuroNovel.DataNode;
+using UnityEditor;
 
-namespace KuroNovel.StateMachine
+namespace KuroNovel.Manager
 {
-    public interface IVNState
+    public class VNStateMachine : MonoSingleton<VNStateMachine>
     {
-        public void Enter();
-        public void Update();
-        public void Exit();
-    }
+        private StateMachine m_StateMachine;
+        private Dictionary<Enum, IStateMachine> m_States = new Dictionary<Enum, IStateMachine>();
 
-    public class VNStateMachine 
-    {
-        private VNSequence sequence;
-        private int currentNodeIndex = 0;
-        private IVNState currentState;
+        public VNSequence m_Sequence;
+        [SerializeField] private TextMeshProUGUI textMeshProUGUI;
 
-        public VNStateMachine(VNSequence sequence)
+        public override void Awake()
         {
-            this.sequence = sequence;
+            base.Awake();
+
+            m_States.Add(VNNodeType.Dialogue, new DialogueState());
+            m_States.Add(VNNodeType.Choices, new ChoicesState());
+            m_States.Add(VNNodeType.Sprite, new SpriteState());
+            m_States.Add(VNNodeType.Background, new BackgroundState());
+
+            //path = AssetDatabase.GetAssetPath(m_Sequence);
+
         }
 
-        public void Start()
+        int i = 0;
+
+        private void OnGUI()
         {
-            if (sequence.Nodes.Count > 0)
+            textMeshProUGUI.text = $"sequence : {isNull} | statemac : {isNull1} | {m_Sequence.Nodes.Count}";
+
+            if (GUILayout.Button("Start"))
             {
-                SetState(new VNNodeState(sequence.Nodes[currentNodeIndex], this));
+                m_StateMachine = new StateMachine(m_States, m_Sequence, OnComplete);
+                m_StateMachine.ChangeState(m_Sequence.Nodes[i]);
             }
+
+            if (m_StateMachine != null)
+                if (m_StateMachine.CurrentState != null)
+                GUILayout.Label(m_StateMachine.CurrentState.ToString());
         }
 
-        public void SetState(IVNState newState)
+        bool isNull = false;
+        bool isNull1 = false;
+
+        private void OnComplete()
         {
-            currentState?.Exit();
-            currentState = newState;
-            currentState.Enter();
+            i++;
+            if (i == m_Sequence.Nodes.Count) i = 0;
+
+            m_StateMachine.ChangeState(m_Sequence.Nodes[i]);
         }
 
-        public void NextNode()
+        private void Update()
         {
-            currentNodeIndex++;
-            if (currentNodeIndex < sequence.Nodes.Count)
-            {
-                SetState(new VNNodeState(sequence.Nodes[currentNodeIndex], this));
-            }
-            else
-            {
-                Debug.Log("VN Sequence Completed!");
-            }
-        }
+            isNull = m_Sequence == null ? true : false;
+            isNull1 = m_StateMachine == null ? true : false;
 
-        public void Update()
-        {
-            currentState?.Update();
+            if (m_StateMachine != null)
+                if (m_StateMachine.CurrentState != null &&
+                    m_StateMachine.CurrentState == m_States[VNNodeType.Dialogue])
+                    m_StateMachine?.OnState(m_Sequence.Nodes[i]);
         }
     }
 }

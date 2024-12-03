@@ -12,3 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c051c2e9da4f0944db67922144c70e74, type: 3}
   m_Name: Hina
   m_EditorClassIdentifier: 
+  CharacterName: Hina
+  Emotions:
+  - Emotion: New Emotion
+    Sprite: {fileID: 21300000, guid: f64765f23a52e324ca24d7b3e5d6d7b0, type: 3}
+  - Emotion: New Emotion
+    Sprite: {fileID: 21300000, guid: dd09145f744362d44ade3874cc8c6f19, type: 3}
+  Info: 

@@ -2,9 +2,9 @@ using UnityEngine;
 using KuroNovel.DataNode;
 using KuroNovel.Manager;
 
-namespace KuroNovel.StateMachine
+namespace KuroNovel.Utils
 {
-    public class VNNodeState : IVNState
+    public class VNNodeState
     {
         private VNNode node;
         private VNStateMachine stateMachine;
@@ -21,28 +21,28 @@ namespace KuroNovel.StateMachine
 
             if (node is DialogueNode dialogueNode)
             {
-                VNUIManager.Instance.ShowDialogue(dialogueNode, () => stateMachine.NextNode());
+                //VNUIManager.Instance.ShowDialogue(dialogueNode, () => stateMachine.NextNode());
             }
             else if (node is ChoicesNode choicesNode)
             {
                 // Display choice node
                 VNUIManager.Instance.ShowChoices(choicesNode, selectedChoice =>
                 {
-                    stateMachine.NextNode();
+                    //stateMachine.NextNode();
                 });
             }
             else if (node is BackgroundNode backgroundNode)
             {
-                VNUIManager.Instance.ShowBackground(backgroundNode, () => stateMachine.NextNode());
+                //VNUIManager.Instance.ShowBackground(backgroundNode, () => stateMachine.NextNode());
             }
             else if (node is SpriteNode spriteNode)
             {
-                VNUIManager.Instance.ShowSprite(spriteNode, () => stateMachine.NextNode());
+                //VNUIManager.Instance.ShowSprite(spriteNode, () => stateMachine.NextNode());
             }
             else
             {
                 // Handle other node types here
-                stateMachine.NextNode();
+                //stateMachine.NextNode();
             }
         }
 

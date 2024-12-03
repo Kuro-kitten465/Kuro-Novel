@@ -7,8 +7,8 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class VNNode : ScriptableObject
     {
-        public string NodeName { get; set; }
-        public VNNodeType NodeType { get; set; }
+        public string NodeName;
+        public VNNodeType NodeType;
     }
 
     public enum VNNodeType

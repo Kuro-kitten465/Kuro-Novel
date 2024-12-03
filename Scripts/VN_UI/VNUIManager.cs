@@ -150,6 +150,7 @@ namespace KuroNovel.Manager
                 Debug.LogError($"Background sprite not found");
                 onComplete?.Invoke();
             }
+
         }
         #endregion
         #region Spritr Handler

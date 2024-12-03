@@ -7,11 +7,11 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class DialogueNode : VNNode
     {
-        public string Speaker { get; set; }
-        public string DialogueText { get; set; }
-        public AudioClip VoiceLine { get; set; }
+        public string Speaker;
+        public string DialogueText;
+        public AudioClip VoiceLine;
 
-        public CharacterNode Character { get; set; }
+        public CharacterNode Character;
 
         public DialogueNode() => NodeType = VNNodeType.Dialogue;
     }

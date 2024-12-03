@@ -7,11 +7,9 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class CharacterNode : ScriptableObject
     {
-        public string CharacterName { get; set; }
-        public List<EmotionsNode> Emotions { get; set; }
-        public string Info { get; set; }
-
-        public CharacterNode() => Emotions = new List<EmotionsNode>();
+        public string CharacterName;
+        public List<EmotionsNode> Emotions = new List<EmotionsNode>();
+        public string Info;
 
         public int EmotionsIndexOf(string s)
         {
@@ -28,7 +26,7 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class EmotionsNode
     {
-        public string Emotion { get; set; }
-        public Sprite Sprite { get; set; }
+        public string Emotion;
+        public Sprite Sprite;
     }
 }

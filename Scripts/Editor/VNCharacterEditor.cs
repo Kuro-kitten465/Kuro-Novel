@@ -228,7 +228,7 @@ namespace KuroNovelEdior
             string oldPath = AssetDatabase.GetAssetPath(character);
             string newPath = Path.Combine(CharactersFolderPath, $"{newName}.asset");
 
-            newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
+            //newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
 
             AssetDatabase.RenameAsset(oldPath, newName);
             AssetDatabase.SaveAssets();

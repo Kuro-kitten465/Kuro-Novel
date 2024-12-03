@@ -8,9 +8,7 @@ namespace KuroNovel.DataNode
     [Serializable]
     public class VNSequence : ScriptableObject
     {
-        public string Title { get; set; }
-        public List<VNNode> Nodes { get; set; }
-
-        public VNSequence() => Nodes = new List<VNNode>();
+        public string Title;
+        public List<VNNode> Nodes = new List<VNNode>();
     }
 }

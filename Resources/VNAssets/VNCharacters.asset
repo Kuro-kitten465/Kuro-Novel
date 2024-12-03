@@ -12,3 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ba0b99de0587204db9b42ab6202dc1c, type: 3}
   m_Name: VNCharacters
   m_EditorClassIdentifier: 
+  Characters:
+  - {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+  - {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
+  - {fileID: 11400000, guid: bff7b464c910d8646954dc48e80ba06e, type: 2}

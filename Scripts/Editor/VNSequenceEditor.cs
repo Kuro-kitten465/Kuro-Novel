@@ -7,7 +7,6 @@ using KuroNovel.DataNode;
 using KuroNovelEdior.Utils;
 using KuroNovel;
 using System.Linq;
-using UnityEditorInternal;  // Add this
 
 namespace KuroNovelEdior
 {
@@ -29,8 +28,6 @@ namespace KuroNovelEdior
 
         private void OnEnable()
         {
-            currentSequence = null;
-
             vn_Characters = Resources.Load<VNCharacters>("VNAssets/VNCharacters");
 
             nodeButtonStyle = new GUIStyle()
@@ -54,6 +51,7 @@ namespace KuroNovelEdior
             selectedNodeIndex = index2;
             EditorUtility.SetDirty(currentSequence);
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
 
         private void OnGUI()
@@ -78,7 +76,22 @@ namespace KuroNovelEdior
             leftPanelScrollPosition = GUILayout.BeginScrollView(leftPanelScrollPosition, GUILayout.ExpandHeight(true));
 
             GUILayout.Label($"Sequence Title", EditorStyles.boldLabel);
-            currentSequence.Title = EditorGUILayout.TextField(currentSequence.Title);
+            string title = EditorGUILayout.TextField(currentSequence.Title);
+            if (title != currentSequence.Title)
+            {
+                string path = AssetDatabase.GetAssetPath(currentSequence);
+
+                AssetDatabase.RenameAsset(path, title);
+                AssetDatabase.SaveAssets();
+
+                currentSequence.name = title;
+                currentSequence.Title = title;
+                EditorUtility.SetDirty(currentSequence);
+                AssetDatabase.Refresh();
+            }
+
+            if (GUILayout.Button("Restore"))
+                ValidateSequenceNodes();
             GUILayout.Space(5);
 
             // Left Header
@@ -158,8 +171,16 @@ namespace KuroNovelEdior
 
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
+
                 GUILayout.Label("Node Name: ", EditorStyles.boldLabel);
-                selectedNode.NodeName = EditorGUILayout.TextField(selectedNode.NodeName);
+                string newNodeName = EditorGUILayout.TextField(selectedNode.NodeName);
+                if (newNodeName != selectedNode.NodeName)
+                {
+                    selectedNode.NodeName = newNodeName;
+                    selectedNode.name = newNodeName;  // Update object name
+                    EditorUtility.SetDirty(currentSequence);
+                    AssetDatabase.SaveAssets();
+                }
 
                 VNNodeType newType = (VNNodeType)EditorGUILayout.EnumPopup(selectedNode.NodeType, GUILayout.Width(100));
                 if (newType != selectedNode.NodeType)
@@ -194,7 +215,7 @@ namespace KuroNovelEdior
         private void SaveToScriptableObject()
         {
             //string path = EditorUtility.SaveFilePanel("Save VN Sequence", VNSettingsManager.GetSettings().CharactersFolder, $"{currentSequence.Title}.asset", "asset");
-
+            CleanupNullNodes();
             string path = VNSettingsManager.GetSettings().SequencesFolder;
 
             if (!Directory.Exists(path))
@@ -202,7 +223,10 @@ namespace KuroNovelEdior
 
             if (!string.IsNullOrEmpty(path))
             {
-                AssetDatabase.CreateAsset(currentSequence, path + $"{currentSequence.Title}.asset");
+                if (!File.Exists(path + currentSequence.Title + ".asset"))
+                    AssetDatabase.CreateAsset(currentSequence, path + $"{currentSequence.Title}.asset");
+
+                EditorUtility.SetDirty(currentSequence);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
@@ -212,7 +236,7 @@ namespace KuroNovelEdior
 
         private void SaveToJSON()
         {
-            string json = JsonConvert.SerializeObject(currentSequence, VNSettings.serializerSettings);
+            /*string json = JsonConvert.SerializeObject(currentSequence, VNSettings.serializerSettings);
             string path = EditorUtility.SaveFilePanel("Save VN Sequence", "Assets", currentSequence.Title + ".json", "json");
 
             if (!string.IsNullOrEmpty(path))
@@ -221,7 +245,7 @@ namespace KuroNovelEdior
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
                 Debug.Log("Sequence saved to: " + path);
-            }
+            }*/
         }
 
         private void CreateNewSequence()
@@ -249,6 +273,20 @@ namespace KuroNovelEdior
 
             currentSequence = EditorGUILayout.ObjectField("Load Sequence", currentSequence, typeof(VNSequence), false) as VNSequence;
         }
+
+        private void ValidateSequenceNodes()
+        {
+            if (currentSequence == null || currentSequence.Nodes == null || currentSequence.Nodes.Count == 0)
+            {
+                Debug.LogWarning("Nodes list is null, attempting to restore.");
+                currentSequence.Nodes = new List<VNNode>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(currentSequence))
+                                        .OfType<VNNode>());
+                if (currentSequence.Nodes.Count == 0)
+                {
+                    Debug.LogError("Failed to restore nodes.");
+                }
+            }
+        }
         #endregion
 
         private void ShowAddNodeMenu()
@@ -265,14 +303,29 @@ namespace KuroNovelEdior
         {
             bool isJson = VNSettingsManager.GetSettings().SaveDataAs == VNSettings.SaveDataMode.JSON;
             VNNode newNode = VNNodeFactory.CreateNode(type, isJson);
-            newNode.NodeName = "New " + type + " Node";
+            newNode.NodeName = GetUniqueNodeName("New " + type + " Node");
+
+            newNode.name = newNode.NodeName;
             AssetDatabase.AddObjectToAsset(newNode, currentSequence);
             currentSequence.Nodes.Add(newNode);
 
+            EditorUtility.SetDirty(newNode);
             EditorUtility.SetDirty(currentSequence);
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             selectedNodeIndex = currentSequence.Nodes.Count - 1; // Select the new node
+        }
+
+        private string GetUniqueNodeName(string baseName)
+        {
+            int index = 1;
+            string uniqueName = baseName;
+            while (currentSequence.Nodes.Any(node => node.NodeName == uniqueName))
+            {
+                uniqueName = baseName + " " + index++;
+            }
+            return uniqueName;
         }
 
         private void DeleteNode(int index)
@@ -284,6 +337,16 @@ namespace KuroNovelEdior
                 EditorUtility.SetDirty(currentSequence);
                 AssetDatabase.SaveAssets();
                 selectedNodeIndex = -1;
+            }
+        }
+
+        private void CleanupNullNodes()
+        {
+            if (currentSequence != null && currentSequence.Nodes != null)
+            {
+                currentSequence.Nodes.RemoveAll(node => node == null);
+                EditorUtility.SetDirty(currentSequence);
+                AssetDatabase.SaveAssets();
             }
         }
 

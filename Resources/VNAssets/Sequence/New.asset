@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8785673750819200612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7efc8bd31562e2b468e124bf96c861cb, type: 3}
+  m_Name: New Dialogue Node
+  m_EditorClassIdentifier: 
+  NodeName: New Dialogue Node
+  NodeType: 0
+  Speaker: Hoshino
+  DialogueText: ssssssssss
+  VoiceLine: {fileID: 0}
+  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+--- !u!114 &-8389851146666846662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7efc8bd31562e2b468e124bf96c861cb, type: 3}
+  m_Name: New Dialogue Node 2
+  m_EditorClassIdentifier: 
+  NodeName: New Dialogue Node 2
+  NodeType: 0
+  Speaker: Hina
+  DialogueText: sssssssssss
+  VoiceLine: {fileID: 0}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
+--- !u!114 &-3713287785713282856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bdca143723e5be45a988ef2c2d675de, type: 3}
+  m_Name: New Choices Node
+  m_EditorClassIdentifier: 
+  NodeName: New Choices Node
+  NodeType: 1
+  Prompt: 
+  Choices:
+  - Text: asdadada
+    TargetID: 
+  HideDialogue: 0
+--- !u!114 &-3557958123800600987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7efc8bd31562e2b468e124bf96c861cb, type: 3}
+  m_Name: New Dialogue Node 3
+  m_EditorClassIdentifier: 
+  NodeName: New Dialogue Node 3
+  NodeType: 0
+  Speaker: Hoshino
+  DialogueText: assssssssss
+  VoiceLine: {fileID: 0}
+  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+--- !u!114 &-844449611150724378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d303a9d6a30926b488761511ab9e189a, type: 3}
+  m_Name: New Background Node
+  m_EditorClassIdentifier: 
+  NodeName: New Background Node
+  NodeType: 3
+  Background: {fileID: 21300000, guid: da59a71bd3425f04085a3dfa0dcc934c, type: 3}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc8abfbfd469b144abd6418eec194db, type: 3}
+  m_Name: New
+  m_EditorClassIdentifier: 
+  Title: New
+  Nodes:
+  - {fileID: -844449611150724378}
+  - {fileID: 4928899049434787279}
+  - {fileID: -8785673750819200612}
+  - {fileID: 2941709822808678852}
+  - {fileID: -3713287785713282856}
+  - {fileID: -8389851146666846662}
+  - {fileID: 7821380655982444416}
+  - {fileID: -3557958123800600987}
+--- !u!114 &2941709822808678852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7efc8bd31562e2b468e124bf96c861cb, type: 3}
+  m_Name: New Dialogue Node 1
+  m_EditorClassIdentifier: 
+  NodeName: New Dialogue Node 1
+  NodeType: 0
+  Speaker: Sensei
+  DialogueText: aaaaaaaa
+  VoiceLine: {fileID: 0}
+  Character: {fileID: 11400000, guid: bff7b464c910d8646954dc48e80ba06e, type: 2}
+--- !u!114 &4928899049434787279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4464a4b0dfda79743b3613d7ae1d71fb, type: 3}
+  m_Name: New Sprite Node
+  m_EditorClassIdentifier: 
+  NodeName: New Sprite Node
+  NodeType: 2
+  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+  Emotion: New Emotion
+  CharacterSprite: {fileID: 21300000, guid: a873d051deb05704f9bec95b18085873, type: 3}
+--- !u!114 &7821380655982444416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d303a9d6a30926b488761511ab9e189a, type: 3}
+  m_Name: New Background Node 1
+  m_EditorClassIdentifier: 
+  NodeName: New Background Node 1
+  NodeType: 3
+  Background: {fileID: 21300000, guid: 9002d7df18ea9a647922625dd9f31a38, type: 3}

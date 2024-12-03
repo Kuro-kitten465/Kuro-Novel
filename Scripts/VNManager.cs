@@ -2,7 +2,6 @@ using KuroNovel.DataNode;
 using Newtonsoft.Json;
 using UnityEngine;
 using KuroNovel.Utils;
-using KuroNovel.StateMachine;
 using System.IO;
 using UnityEngine.SceneManagement;
 using System;
@@ -11,8 +10,8 @@ namespace KuroNovel.Manager
 {
     public class VNManager : MonoSingleton<VNManager>
     {
-        private VNStateMachine stateMachine;
-        private VNSequence currentSequence;
+        [SerializeField] private VNStateMachine stateMachine;
+        [SerializeField] private VNSequence currentSequence;
 
         private const string VNPanelSceneName = "Kuro-Novel";
 
@@ -31,24 +30,14 @@ namespace KuroNovel.Manager
             {
                 //currentSequence = LoadSequence(sequence);
                 currentSequence = sequence;
-                stateMachine = new VNStateMachine(currentSequence);
-                stateMachine.Start();
+                //stateMachine.Test(sequence);
+                //stateMachine = new VNStateMachine(currentSequence);
+                //stateMachine.Start();
             });
         }
 
         private VNSequence LoadSequence(string path)
         {
-            /*if (!File.Exists(path))
-            {
-                Debug.LogError($"Sequence file not found at path: {path}");
-                return null;
-            }*/
-
-            /*
-            var s = Resources.Load<TextAsset>(path);
-            string json = File.ReadAllText(s.text);
-            JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto };
-            return JsonConvert.DeserializeObject<VNSequence>(json, settings);*/
             return Resources.Load<VNSequence>(path);
         }
 
@@ -73,11 +62,6 @@ namespace KuroNovel.Manager
                     onComplete?.Invoke();
                 }
             }
-        }
-
-        private void Update()
-        {
-            stateMachine?.Update();
         }
     }
 }
