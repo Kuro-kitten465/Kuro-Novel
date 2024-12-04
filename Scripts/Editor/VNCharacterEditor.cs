@@ -19,7 +19,7 @@ namespace KuroNovelEdior
         }
 
         private string CharactersFolderPath => VNSettingsManager.GetSettings().CharactersFolder;
-        private const string VNCharactersAssetPath = "Assets/Resources/VNAssets/VNCharacters.asset";
+        private const string VNCharactersAssetPath = "Assets/Kuro-Novel-for-Unity/Resources/VNAssets/VNCharacters.asset";
 
         private VNCharacters vnCharacters;
         private List<CharacterNode> characters = new List<CharacterNode>();

@@ -14,54 +14,33 @@ namespace KuroNovel.Utils
 
     public interface IVNAnimation
     {
-        public void OnEnter(VNAnimationType animationType, GameObject obj, Action onComplete = null);
-        public void OnUpdate(VNAnimationType animationType, GameObject obj, Action onComplete = null);
-        public void OnExit(VNAnimationType animationType, GameObject obj, Action onComplete = null);
+        public void ExecuteAnimation(VNAnimationType animationType, GameObject obj, Action onComplete = null);
     }
 
     public class AnimationManager : MonoSingleton<AnimationManager>
     {
+        private Dictionary<VNAnimationType, IVNAnimation> m_Animations = new();
+        private IVNAnimation m_CurrentAnimation;
+        private VNAnimationType m_CurrentAnimationType;
+        private GameObject obj;
+
         public override void Awake()
         {
             base.Awake();
-        }
 
-        private const float FADE_DURATION = 1.5f;
-        private GameObject m_CurrentObj;
-        private VNAnimationType m_CurrentAnimation;
-
-        private Dictionary<VNAnimationType, IVNAnimation> vn_Animations = new();
-        private IVNAnimation m_CurrentState = null;
-
-        private void Start()
-        {
-            vn_Animations.Add(VNAnimationType.FadeIn, new VNAnimationState(m_CurrentAnimation, m_CurrentObj));
-            vn_Animations.Add(VNAnimationType.FadeOut, new VNAnimationState(m_CurrentAnimation, m_CurrentObj));
+            m_Animations.Add(VNAnimationType.FadeIn, new FadeAnim());
+            m_Animations.Add(VNAnimationType.FadeOut, new FadeAnim());
         }
 
         public void PlayAnimation(VNAnimationType animationType, GameObject obj, Action onAnimationComplete = null)
         {
-            ChangeState(animationType);
-        }
+            m_CurrentAnimationType = animationType;
+            Debug.Log("PlayAnim: " + animationType);
 
-        private void TransitionState(VNAnimationType animationType, IVNAnimation newState)
-        {
-            m_CurrentState?.OnExit(animationType, m_CurrentObj);
-            m_CurrentState = newState;
-            m_CurrentAnimation = animationType;
-            m_CurrentState.OnEnter(animationType, m_CurrentObj);
-        }
-
-        private void Update()
-            => m_CurrentState?.OnUpdate(m_CurrentAnimation, m_CurrentObj);
-
-        public void ChangeState(VNAnimationType animationType)
-        {
-            IVNAnimation currentState;
-
-            if (vn_Animations.TryGetValue(animationType, out currentState))
+            if (m_Animations.TryGetValue(animationType, out m_CurrentAnimation))
             {
-                TransitionState(animationType, currentState);
+                this.obj = obj;
+                m_CurrentAnimation.ExecuteAnimation(m_CurrentAnimationType, obj, onAnimationComplete);
             }
             else
             {

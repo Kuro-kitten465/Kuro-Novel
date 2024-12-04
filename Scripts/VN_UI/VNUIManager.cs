@@ -168,14 +168,19 @@ namespace KuroNovel.Manager
 
             if (isActive)
             {
-                if (backgroundNode.InAnimation != VNAnimationType.None)
-                {
-                    //AnimationManager.Instance.PlayAnimation(backgroundNode.InAnimation, vn_Background.gameObject, onComplete);
-                }
+
             }
 
             vn_Background.sprite = backgroundNode.Background;
-            onComplete?.Invoke();
+
+            if (backgroundNode.InAnimation != VNAnimationType.None)
+            {
+                AnimationManager.Instance.PlayAnimation(backgroundNode.InAnimation, vn_Background.gameObject, onComplete);
+            }
+            else
+            {
+                onComplete?.Invoke();
+            }
         }
         #endregion
         #region Sprite Handler
@@ -192,20 +197,21 @@ namespace KuroNovel.Manager
             {
                 var img = m_ActiveSprites[i].GetComponent<Image>();
 
-                if (!m_ActiveSprites[i].activeSelf)
+                if (img.sprite == null)
                 {
                     img.sprite = spriteNode.CharacterSprite;
                     m_ActiveSprites[i].SetActive(true);
-                    break;
+                    AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeIn, m_ActiveSprites[i], onComplete);
                 }
-                else if (m_ActiveSprites[i].activeSelf)
+                else
                 {
-                    img.sprite = spriteNode.CharacterSprite;
-                    break;
+                    AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeOut, m_ActiveSprites[i], () =>
+                    {
+                        img.sprite = spriteNode.CharacterSprite;
+                        AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeIn, m_ActiveSprites[i], onComplete);
+                    });
                 }
             }
-
-            onComplete?.Invoke();
         }
         #endregion
     }

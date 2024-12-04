@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KuroNovel.Utils
 {
-    public class VNAnimationState : IVNAnimation
+    public class VNAnimationState
     {
         public float ActionTime => m_ActionTime;
         private float m_ActionTime = 0;

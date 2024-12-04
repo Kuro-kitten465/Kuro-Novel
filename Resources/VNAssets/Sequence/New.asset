@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NodeName: New Dialogue Node
   NodeType: 0
-  Speaker: Hoshino
+  Speaker: Hina
   DialogueText: ssssssssss
   VoiceLine: {fileID: 0}
-  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
 --- !u!114 &-8389851146666846662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,10 +69,47 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NodeName: New Dialogue Node 3
   NodeType: 0
-  Speaker: Hoshino
+  Speaker: Hina
   DialogueText: assssssssss
   VoiceLine: {fileID: 0}
-  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
+--- !u!114 &-2880944264706047799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7efc8bd31562e2b468e124bf96c861cb, type: 3}
+  m_Name: New Dialogue Node 4
+  m_EditorClassIdentifier: 
+  NodeName: New Dialogue Node 4
+  NodeType: 0
+  Speaker: Hina
+  DialogueText: dsddsdsdsdsddssd
+  VoiceLine: {fileID: 0}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
+--- !u!114 &-2865351530850853515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4464a4b0dfda79743b3613d7ae1d71fb, type: 3}
+  m_Name: New Sprite Node 1
+  m_EditorClassIdentifier: 
+  NodeName: New Sprite Node 1
+  NodeType: 2
+  Character: {fileID: 11400000, guid: 8b6bce8996e30d14e9d9432c66a13a93, type: 2}
+  Emotion: Idle
+  CharacterSprite: {fileID: 21300000, guid: a873d051deb05704f9bec95b18085873, type: 3}
+  InAnimation: 0
+  OutAnimation: 0
 --- !u!114 &-844449611150724378
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87,7 +124,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NodeName: New Background Node
   NodeType: 3
-  Background: {fileID: 21300000, guid: da59a71bd3425f04085a3dfa0dcc934c, type: 3}
+  Background: {fileID: 21300000, guid: fa41575544f3fdb48bc5ef2cf0ef8c5a, type: 3}
+  InAnimation: 1
+  OutAnimation: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,7 +148,9 @@ MonoBehaviour:
   - {fileID: -3713287785713282856}
   - {fileID: -8389851146666846662}
   - {fileID: 7821380655982444416}
+  - {fileID: -2865351530850853515}
   - {fileID: -3557958123800600987}
+  - {fileID: -2880944264706047799}
 --- !u!114 &2941709822808678852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -124,10 +165,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NodeName: New Dialogue Node 1
   NodeType: 0
-  Speaker: Sensei
+  Speaker: Hina
   DialogueText: aaaaaaaa
   VoiceLine: {fileID: 0}
-  Character: {fileID: 11400000, guid: bff7b464c910d8646954dc48e80ba06e, type: 2}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
 --- !u!114 &4928899049434787279
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,13 +179,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4464a4b0dfda79743b3613d7ae1d71fb, type: 3}
-  m_Name: New Sprite Node
+  m_Name: New Sprite
   m_EditorClassIdentifier: 
-  NodeName: New Sprite Node
+  NodeName: New Sprite
   NodeType: 2
-  Character: {fileID: 11400000, guid: 9596a0842e020b1428f851e4a4111007, type: 2}
+  Character: {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
   Emotion: New Emotion
-  CharacterSprite: {fileID: 21300000, guid: a873d051deb05704f9bec95b18085873, type: 3}
+  CharacterSprite: {fileID: 21300000, guid: f64765f23a52e324ca24d7b3e5d6d7b0, type: 3}
+  InAnimation: 1
+  OutAnimation: 0
 --- !u!114 &7821380655982444416
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,3 +203,5 @@ MonoBehaviour:
   NodeName: New Background Node 1
   NodeType: 3
   Background: {fileID: 21300000, guid: 9002d7df18ea9a647922625dd9f31a38, type: 3}
+  InAnimation: 0
+  OutAnimation: 0
