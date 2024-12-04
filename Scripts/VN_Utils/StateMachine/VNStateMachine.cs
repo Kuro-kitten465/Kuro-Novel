@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System;
 using TMPro;
 using KuroNovel.DataNode;
-using UnityEditor;
 
 namespace KuroNovel.Manager
 {
@@ -24,9 +23,6 @@ namespace KuroNovel.Manager
             m_States.Add(VNNodeType.Choices, new ChoicesState());
             m_States.Add(VNNodeType.Sprite, new SpriteState());
             m_States.Add(VNNodeType.Background, new BackgroundState());
-
-            //path = AssetDatabase.GetAssetPath(m_Sequence);
-
         }
 
         int i = 0;

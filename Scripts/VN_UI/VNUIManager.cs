@@ -6,11 +6,17 @@ using KuroNovel.DataNode;
 using KuroNovel.Utils;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace KuroNovel.Manager
 {
     public class VNUIManager : MonoSingleton<VNUIManager>
     {
+        public enum VNObjectReference
+        {
+            Background, SpriteCenter, SpriteLeft, SpriteRight
+        }
+
         [Header("VN Panel Properties")]
         [SerializeField] private CanvasGroup vn_GroupPanel;
         [SerializeField] private GameObject vn_DialoguePanel;
@@ -28,14 +34,25 @@ namespace KuroNovel.Manager
         [SerializeField] private Image vn_Background;
 
         [Header("Sprite Properties")]
-        [SerializeField] private GameObject vn_SpriteRef;
+        [SerializeField] private GameObject[] vn_Sprites = new GameObject[3];
         [SerializeField] private HorizontalLayoutGroup vn_SpriteLayoutGroup;
 
-        private List<GameObject> m_ActiveButtons = new List<GameObject>();
+        private List<GameObject> m_ActiveButtons = new();
+        private List<GameObject> m_ActiveSprites = new();
+        private Dictionary<VNObjectReference, GameObject> m_Objects = new();
+
+        private VNAnimationState m_AnimationState;
 
         public override void Awake()
         {
             base.Awake();
+
+            m_Objects.Add(VNObjectReference.Background, vn_Background.gameObject);
+            m_Objects.Add(VNObjectReference.SpriteCenter, vn_Sprites[0].gameObject);
+            //m_Objects.Add(VNObjectReference.SpriteLeft, vn_Sprites[1].gameObject);
+            //m_Objects.Add(VNObjectReference.SpriteRight, vn_Sprites[2].gameObject);
+
+            m_ActiveSprites = vn_Sprites.ToList();
         }
 
         #region Dialogue Handler
@@ -80,6 +97,7 @@ namespace KuroNovel.Manager
             vn_DialoguePanel.SetActive(false);
             onComplete?.Invoke();
         }
+
         #endregion
         #region Choices Handler
 
@@ -139,39 +157,55 @@ namespace KuroNovel.Manager
             // Use Resources.Load with the correct path
             /*string resourcePath = backgroundNode.Background.Replace(Application.dataPath, "").TrimStart('/');
             Sprite sprite = Resources.Load<Sprite>(resourcePath);*/
-
-            if (backgroundNode.Background != null)
-            {
-                vn_Background.sprite = backgroundNode.Background;
-                onComplete?.Invoke();
-            }
-            else
+            if (backgroundNode == null)
             {
                 Debug.LogError($"Background sprite not found");
                 onComplete?.Invoke();
+                return;
             }
 
+            var isActive = vn_Background.IsActive();
+
+            if (isActive)
+            {
+                if (backgroundNode.InAnimation != VNAnimationType.None)
+                {
+                    //AnimationManager.Instance.PlayAnimation(backgroundNode.InAnimation, vn_Background.gameObject, onComplete);
+                }
+            }
+
+            vn_Background.sprite = backgroundNode.Background;
+            onComplete?.Invoke();
         }
         #endregion
-        #region Spritr Handler
+        #region Sprite Handler
         public void ShowSprite(SpriteNode spriteNode, Action onComplete)
         {
-            if (spriteNode.CharacterSprite != null)
-            {
-                var spObject = Instantiate(vn_SpriteRef, vn_SpriteLayoutGroup.transform);
-                spObject.gameObject.SetActive(true);
-
-                var sp = spObject.GetComponent<Image>();
-
-                sp.sprite = spriteNode.CharacterSprite;
-
-                onComplete?.Invoke();
-            }
-            else
+            if (spriteNode.CharacterSprite == null)
             {
                 Debug.LogError($"Background sprite not found");
                 onComplete?.Invoke();
+                return;
             }
+
+            for (int i = 0; i < m_ActiveSprites.Count; i++)
+            {
+                var img = m_ActiveSprites[i].GetComponent<Image>();
+
+                if (!m_ActiveSprites[i].activeSelf)
+                {
+                    img.sprite = spriteNode.CharacterSprite;
+                    m_ActiveSprites[i].SetActive(true);
+                    break;
+                }
+                else if (m_ActiveSprites[i].activeSelf)
+                {
+                    img.sprite = spriteNode.CharacterSprite;
+                    break;
+                }
+            }
+
+            onComplete?.Invoke();
         }
         #endregion
     }
