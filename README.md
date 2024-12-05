@@ -1,2 +1,2 @@
-# Kuro Novel for Unity
- A Visual Novel Tools for Unity!
+# Kuro Novel
+ A Visual Novel Tool for Unity!
