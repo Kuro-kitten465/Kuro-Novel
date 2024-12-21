@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: VNCharacters
   m_EditorClassIdentifier: 
   Characters:
-  - {fileID: 11400000, guid: 6c83add0db9936e418b259c226a56275, type: 2}
-  - {fileID: 11400000, guid: 8b6bce8996e30d14e9d9432c66a13a93, type: 2}
+  - {fileID: 11400000, guid: 99168b73796abee469f629dcc0ce54c9, type: 2}
+  - {fileID: 11400000, guid: 12a032e72904f6b4ebc7a2fc05afad59, type: 2}

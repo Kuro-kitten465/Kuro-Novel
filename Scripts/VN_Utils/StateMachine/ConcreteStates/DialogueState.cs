@@ -16,6 +16,7 @@ namespace KuroNovel.Utils
 
         public void ExitState(VNNode node, Action onComplete)
         {
+            VNUIManager.Instance.DeactiveDialogue();
             Debug.Log($"{this} Exit");
         }
 

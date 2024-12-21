@@ -17,6 +17,8 @@ namespace KuroNovel.Utils
         public void ExitState(VNNode node, Action onComplete)
         {
             Debug.Log($"{this} Exit");
+            VNUIManager.Instance.DeactiveSprite();
+            VNUIManager.Instance.DeactiveDialogue();
         }
 
         public void UpdateState(VNNode node, Action onComplete)

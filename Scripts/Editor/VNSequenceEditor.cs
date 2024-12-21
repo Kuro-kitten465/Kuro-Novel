@@ -2,23 +2,24 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
 using KuroNovel.DataNode;
 using KuroNovelEdior.Utils;
 using KuroNovel;
 using System.Linq;
+using System;
 
 namespace KuroNovelEdior
 {
     public class VNSequenceEditor : EditorWindow
     {
-        private VNSequence currentSequence; // The sequence we are editing
-        private int selectedNodeIndex = -1; // Index of the selected node in the list
-        private Vector2 leftPanelScrollPosition; // Scroll position for left panel
-        private Vector2 rightPanelScrollPosition; // Scroll position for right panel
-        private GUIStyle nodeButtonStyle;
-        //private int m_SelectedCharacterIndex = 0;
-        private VNCharacters vn_Characters;
+        private VNSequence m_CurrentSequence;
+        private int m_SelectedNodeIndex = -1;
+        private Vector2 m_LeftPanelScrollPos;
+        private Vector2 m_RightPanelScrollPos;
+        private GUIStyle m_NodeButtonStyle;
+        private GUIStyle m_CenterLabelStyle;
+        private Color m_textColor;
+        private VNCharacters m_Characters;
 
         [MenuItem("Kuro Novel/VN Sequence Editor", false, 0)]
         public static void ShowWindow()
@@ -28,35 +29,49 @@ namespace KuroNovelEdior
 
         private void OnEnable()
         {
-            vn_Characters = Resources.Load<VNCharacters>("VNAssets/VNCharacters");
+            m_Characters = Resources.Load<VNCharacters>("VNAssets/VNCharacters");
 
-            nodeButtonStyle = new GUIStyle()
+            m_textColor = EditorGUIUtility.isProSkin ? Color.white : Color.black;
+
+            m_NodeButtonStyle = new GUIStyle()
             {
                 alignment = TextAnchor.MiddleLeft,
-                normal = new GUIStyleState { background = Texture2D.blackTexture, textColor = Color.white },
-                active = new GUIStyleState { background = Texture2D.grayTexture, textColor = Color.cyan },
+                normal = new GUIStyleState { background = Texture2D.blackTexture, textColor = m_textColor },
                 padding = new RectOffset(5, 5, 5, 5)
+            };
+
+            m_CenterLabelStyle = new GUIStyle()
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold,
+                normal = new GUIStyleState { textColor = m_textColor }
             };
         }
 
-        private void SwapNodes(int index1, int index2)
+        private void CleanInvalidNodes()
         {
-            if (index1 < 0 || index2 < 0 || index1 >= currentSequence.Nodes.Count || index2 >= currentSequence.Nodes.Count)
-                return;
+            string[] guids = AssetDatabase.FindAssets("t:VNNode");
 
-            var temp = currentSequence.Nodes[index1];
-            currentSequence.Nodes[index1] = currentSequence.Nodes[index2];
-            currentSequence.Nodes[index2] = temp;
+            foreach (string guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var sobj = AssetDatabase.LoadAssetAtPath<VNNode>(path);
 
-            selectedNodeIndex = index2;
-            EditorUtility.SetDirty(currentSequence);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+                if (sobj == null) continue;
+
+                if (!m_CurrentSequence.Nodes.Contains(sobj))
+                {
+                    AssetDatabase.RemoveObjectFromAsset(sobj);
+                    EditorUtility.SetDirty(m_CurrentSequence);
+                    AssetDatabase.SaveAssets();
+                }
+            }
         }
 
         private void OnGUI()
         {
-            if (currentSequence == null)
+            //Create or Load the sequence
+            if (m_CurrentSequence == null)
             {
                 GUILayout.Label("No VN Sequence loaded.", EditorStyles.boldLabel);
 
@@ -68,30 +83,33 @@ namespace KuroNovelEdior
                 return;
             }
 
+            // Remove Invalid Node
+            m_CurrentSequence.Nodes.RemoveAll(node => node == null);
+            CleanInvalidNodes();
+
             // Split the window into two panels
             GUILayout.BeginHorizontal();
 
-            // Left Panel
+            //////////////////// Left Panel ////////////////////
             GUILayout.BeginVertical(GUILayout.Width(300));
-            leftPanelScrollPosition = GUILayout.BeginScrollView(leftPanelScrollPosition, GUILayout.ExpandHeight(true));
+            m_LeftPanelScrollPos = GUILayout.BeginScrollView(m_LeftPanelScrollPos, GUILayout.ExpandHeight(true));
 
+            //Header of naming sequence
             GUILayout.Label($"Sequence Title", EditorStyles.boldLabel);
-            string title = EditorGUILayout.TextField(currentSequence.Title);
-            if (title != currentSequence.Title)
+            string title = EditorGUILayout.TextField(m_CurrentSequence.Title);
+            if (title != m_CurrentSequence.Title)
             {
-                string path = AssetDatabase.GetAssetPath(currentSequence);
+                var path = AssetDatabase.GetAssetPath(m_CurrentSequence);
 
                 AssetDatabase.RenameAsset(path, title);
                 AssetDatabase.SaveAssets();
 
-                currentSequence.name = title;
-                currentSequence.Title = title;
-                EditorUtility.SetDirty(currentSequence);
+                m_CurrentSequence.name = title;
+                m_CurrentSequence.Title = title;
+                EditorUtility.SetDirty(m_CurrentSequence);
                 AssetDatabase.Refresh();
             }
 
-            if (GUILayout.Button("Restore"))
-                ValidateSequenceNodes();
             GUILayout.Space(5);
 
             // Left Header
@@ -102,36 +120,42 @@ namespace KuroNovelEdior
             GUILayout.EndHorizontal();
 
             // Loop for Show each node in Sequence
-            for (int i = 0; i < currentSequence.Nodes.Count; i++)
+            for (int i = 0; i < m_CurrentSequence.Nodes.Count; i++)
             {
-                var node = currentSequence.Nodes[i];
+                var node = m_CurrentSequence.Nodes[i];
 
                 EditorGUILayout.BeginHorizontal();
 
-                if (selectedNodeIndex == i)
+                //Highlight the selected node
+                if (m_SelectedNodeIndex == i)
                 {
-                    nodeButtonStyle.normal = new GUIStyleState
+                    var activeTextColor = EditorGUIUtility.isProSkin ? Color.cyan : Color.blue;
+
+                    m_NodeButtonStyle.normal = new GUIStyleState
                     {
-                        textColor = Color.cyan
+                        textColor = activeTextColor
                     };
                 }
                 else
                 {
-                    nodeButtonStyle.normal = new GUIStyleState
+                    m_NodeButtonStyle.normal = new GUIStyleState
                     {
-                        textColor = Color.white
+                        textColor = m_textColor
                     };
                 }
 
-                if (GUILayout.Button($"{i}. {node.NodeName}", nodeButtonStyle))
-                    selectedNodeIndex = i;
+                // Button for node to select
+                if (GUILayout.Button($"{i}. {node.NodeName}", m_NodeButtonStyle))
+                    m_SelectedNodeIndex = i;
 
-                if (selectedNodeIndex == i && GUILayout.Button("▲", GUILayout.Width(30)))
+                // Swap position of node
+                if (m_SelectedNodeIndex == i && GUILayout.Button("▲", GUILayout.Width(30)))
                     SwapNodes(i, i - 1);
-                if (selectedNodeIndex == i && GUILayout.Button("▼", GUILayout.Width(30)))
+                if (m_SelectedNodeIndex == i && GUILayout.Button("▼", GUILayout.Width(30)))
                     SwapNodes(i, i + 1);
 
-                if (selectedNodeIndex == i && GUILayout.Button("Delete", GUILayout.Width(60)))
+                // Delete the selected node
+                if (m_SelectedNodeIndex == i && GUILayout.Button("Delete", GUILayout.Width(60)))
                     DeleteNode(i);
 
                 EditorGUILayout.EndHorizontal();
@@ -142,6 +166,7 @@ namespace KuroNovelEdior
             GUILayout.FlexibleSpace();
             GUILayout.Space(5);
 
+            // Footer of Left Panel
             LoadExistingSequence();
 
             if (GUILayout.Button("Create New Sequence"))
@@ -149,84 +174,91 @@ namespace KuroNovelEdior
 
             if (GUILayout.Button("Save Sequence"))
             {
-                if (VNSettingsManager.GetSettings().SaveDataAs.Equals(VNSettings.SaveDataMode.JSON))
-                    SaveToJSON();
-                else
-                    SaveToScriptableObject();
+                SaveToScriptableObject();
             }
 
             GUILayout.EndVertical();
             GUILayout.Space(5);
 
-            // Right Panel: Node Editing
+            //////////////////// Right Panel ////////////////////
             GUILayout.BeginVertical();
 
-            if (selectedNodeIndex >= 0 && selectedNodeIndex < currentSequence.Nodes.Count)
+            if (m_SelectedNodeIndex >= 0 && m_SelectedNodeIndex < m_CurrentSequence.Nodes.Count)
             {
-                VNNode selectedNode = currentSequence.Nodes[selectedNodeIndex];
+                var selectedNode = m_CurrentSequence.Nodes[m_SelectedNodeIndex];
 
-                rightPanelScrollPosition = GUILayout.BeginScrollView(rightPanelScrollPosition, GUILayout.ExpandHeight(true));
+                m_RightPanelScrollPos = GUILayout.BeginScrollView(m_RightPanelScrollPos, GUILayout.ExpandHeight(true));
 
                 GUILayout.Label("Edit Node: " + selectedNode.NodeName, EditorStyles.boldLabel);
-
                 GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
 
+                // Naming VN Node
                 GUILayout.Label("Node Name: ", EditorStyles.boldLabel);
-                string newNodeName = EditorGUILayout.TextField(selectedNode.NodeName);
+                var newNodeName = EditorGUILayout.TextField(selectedNode.NodeName);
                 if (newNodeName != selectedNode.NodeName)
                 {
                     selectedNode.NodeName = newNodeName;
-                    selectedNode.name = newNodeName;  // Update object name
-                    EditorUtility.SetDirty(currentSequence);
+                    selectedNode.name = newNodeName;
+                    EditorUtility.SetDirty(m_CurrentSequence);
                     AssetDatabase.SaveAssets();
                 }
 
-                VNNodeType newType = (VNNodeType)EditorGUILayout.EnumPopup(selectedNode.NodeType, GUILayout.Width(100));
+                // Editing Node Type
+                var newType = (VNNodeType)EditorGUILayout.EnumPopup(selectedNode.NodeType, GUILayout.Width(100));
                 if (newType != selectedNode.NodeType)
-                    ChangeNodeType(selectedNodeIndex, newType);
+                    ChangeNodeType(m_SelectedNodeIndex, newType);
 
                 GUILayout.EndHorizontal();
 
                 // Edit properties based on the node type
                 if (selectedNode is DialogueNode dialogueNode)
-                    DrawDialogueNode(ref dialogueNode);
+                    VNEditorUtility.DrawDialogueNode(ref dialogueNode);
+                //DrawDialogueNode(ref dialogueNode);
                 else if (selectedNode is ChoicesNode choiceNode)
-                    DrawChoicesNode(ref choiceNode);
+                    VNEditorUtility.DrawChoicesNode(ref choiceNode);
                 else if (selectedNode is SpriteNode spriteNode)
-                    DrawSpriteNode(ref spriteNode);
+                    VNEditorUtility.DrawSpriteNode(ref spriteNode);
                 else if (selectedNode is BackgroundNode backgroundNode)
-                    DrawBackgroundNode(ref backgroundNode);
+                    VNEditorUtility.DrawBackgroundNode(ref backgroundNode);
+                else if (selectedNode is BGMNode bgmNode)
+                    VNEditorUtility.DrawBGMNode(ref bgmNode);
+                else
+                    DrawCenterLabel("Coming Soon!");
 
                 GUILayout.EndScrollView();
             }
             else
-            {
-                GUILayout.Label("Select a node to edit.", EditorStyles.boldLabel);
-            }
+                DrawCenterLabel("Select a node to edit.");
 
             GUILayout.EndVertical(); // End right panel
-
             GUILayout.EndHorizontal(); // End split layout
         }
 
-        #region Save Load Func
+        private void DrawCenterLabel(string message)
+        {
+            GUILayout.FlexibleSpace();
+            GUILayout.Label(message, m_CenterLabelStyle);
+            GUILayout.FlexibleSpace();
+        }
 
+        #region Save & Load Sequence
+        // Save Sequence
         private void SaveToScriptableObject()
         {
-            //string path = EditorUtility.SaveFilePanel("Save VN Sequence", VNSettingsManager.GetSettings().CharactersFolder, $"{currentSequence.Title}.asset", "asset");
             CleanupNullNodes();
-            string path = VNSettingsManager.GetSettings().SequencesFolder;
+            var path = VNSettingsManager.GetSettings().SequencesFolder;
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
             if (!string.IsNullOrEmpty(path))
             {
-                if (!File.Exists(path + currentSequence.Title + ".asset"))
-                    AssetDatabase.CreateAsset(currentSequence, path + $"{currentSequence.Title}.asset");
+                Debug.Log(path + $"{m_CurrentSequence.Title}.asset");
 
-                EditorUtility.SetDirty(currentSequence);
+                if (!File.Exists(path + m_CurrentSequence.Title + ".asset"))
+                    AssetDatabase.CreateAsset(m_CurrentSequence, path + $"{m_CurrentSequence.Title}.asset");
+
+                EditorUtility.SetDirty(m_CurrentSequence);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
@@ -234,60 +266,76 @@ namespace KuroNovelEdior
             }
         }
 
-        private void SaveToJSON()
-        {
-            /*string json = JsonConvert.SerializeObject(currentSequence, VNSettings.serializerSettings);
-            string path = EditorUtility.SaveFilePanel("Save VN Sequence", "Assets", currentSequence.Title + ".json", "json");
+        // Load Sequence
+        private void LoadExistingSequence() =>
+             m_CurrentSequence = EditorGUILayout.ObjectField("Load Sequence", m_CurrentSequence,
+                                    typeof(VNSequence), false) as VNSequence;
 
-            if (!string.IsNullOrEmpty(path))
-            {
-                File.WriteAllText(path, json);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-                Debug.Log("Sequence saved to: " + path);
-            }*/
-        }
-
+        // Create new Sequence
         private void CreateNewSequence()
         {
-            currentSequence = CreateInstance<VNSequence>();
-            currentSequence.Title = "New Sequence";
-            currentSequence.name = "New Sequence";
-            selectedNodeIndex = -1;
-        }
-
-        private void LoadExistingSequence()
-        {
-            /*if (VNSettingsManager.GetSettings().SaveDataAs == VNSettings.SaveDataMode.JSON)
-            {
-                if (GUILayout.Button("Load Json"))
-                {
-                    string path = EditorUtility.OpenFilePanel("Save VN Sequence", "Assets", ".json");
-                    if (string.IsNullOrEmpty(path)) return;
-                    string json = File.ReadAllText(path);
-                    currentSequence = JsonConvert.DeserializeObject<VNSequence>(json, VNSettings.serializerSettings);
-                }
-
-                return;
-            }*/
-
-            currentSequence = EditorGUILayout.ObjectField("Load Sequence", currentSequence, typeof(VNSequence), false) as VNSequence;
-        }
-
-        private void ValidateSequenceNodes()
-        {
-            if (currentSequence == null || currentSequence.Nodes == null || currentSequence.Nodes.Count == 0)
-            {
-                Debug.LogWarning("Nodes list is null, attempting to restore.");
-                currentSequence.Nodes = new List<VNNode>(AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(currentSequence))
-                                        .OfType<VNNode>());
-                if (currentSequence.Nodes.Count == 0)
-                {
-                    Debug.LogError("Failed to restore nodes.");
-                }
-            }
+            m_CurrentSequence = CreateInstance<VNSequence>();
+            m_CurrentSequence.Title = "New Sequence";
+            m_CurrentSequence.name = "New Sequence";
+            m_SelectedNodeIndex = -1;
         }
         #endregion
+
+        #region Node Utilities
+        private void AddNewNode(VNNodeType type)
+        {
+            VNNode newNode = VNNodeFactory.CreateNode(type);
+            newNode.NodeName = GetUniqueNodeName("New " + type + " Node");
+
+            newNode.name = newNode.NodeName;
+            AssetDatabase.AddObjectToAsset(newNode, m_CurrentSequence);
+            m_CurrentSequence.Nodes.Add(newNode);
+
+            EditorUtility.SetDirty(newNode);
+            EditorUtility.SetDirty(m_CurrentSequence);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            m_SelectedNodeIndex = m_CurrentSequence.Nodes.Count - 1; // Select the new node
+        }
+
+        private void DeleteNode(int index)
+        {
+            if (index >= 0 && index < m_CurrentSequence.Nodes.Count)
+            {
+                DestroyImmediate(m_CurrentSequence.Nodes[index], true);
+                m_CurrentSequence.Nodes.RemoveAt(index);
+                EditorUtility.SetDirty(m_CurrentSequence);
+                AssetDatabase.SaveAssets();
+                m_SelectedNodeIndex = -1;
+            }
+        }
+
+        private void SwapNodes(int index1, int index2)
+        {
+            if (index1 < 0 || index2 < 0 || index1 >= m_CurrentSequence.Nodes.Count || index2 >= m_CurrentSequence.Nodes.Count)
+                return;
+
+            var temp = m_CurrentSequence.Nodes[index1];
+            m_CurrentSequence.Nodes[index1] = m_CurrentSequence.Nodes[index2];
+            m_CurrentSequence.Nodes[index2] = temp;
+
+            m_SelectedNodeIndex = index2;
+            EditorUtility.SetDirty(m_CurrentSequence);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        private string GetUniqueNodeName(string baseName)
+        {
+            int index = 1;
+            string uniqueName = baseName;
+            while (m_CurrentSequence.Nodes.Any(node => node.NodeName == uniqueName))
+            {
+                uniqueName = baseName + " " + index++;
+            }
+            return uniqueName;
+        }
 
         private void ShowAddNodeMenu()
         {
@@ -299,168 +347,22 @@ namespace KuroNovelEdior
             menu.ShowAsContext();
         }
 
-        private void AddNewNode(VNNodeType type)
-        {
-            bool isJson = VNSettingsManager.GetSettings().SaveDataAs == VNSettings.SaveDataMode.JSON;
-            VNNode newNode = VNNodeFactory.CreateNode(type, isJson);
-            newNode.NodeName = GetUniqueNodeName("New " + type + " Node");
-
-            newNode.name = newNode.NodeName;
-            AssetDatabase.AddObjectToAsset(newNode, currentSequence);
-            currentSequence.Nodes.Add(newNode);
-
-            EditorUtility.SetDirty(newNode);
-            EditorUtility.SetDirty(currentSequence);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            selectedNodeIndex = currentSequence.Nodes.Count - 1; // Select the new node
-        }
-
-        private string GetUniqueNodeName(string baseName)
-        {
-            int index = 1;
-            string uniqueName = baseName;
-            while (currentSequence.Nodes.Any(node => node.NodeName == uniqueName))
-            {
-                uniqueName = baseName + " " + index++;
-            }
-            return uniqueName;
-        }
-
-        private void DeleteNode(int index)
-        {
-            if (index >= 0 && index < currentSequence.Nodes.Count)
-            {
-                DestroyImmediate(currentSequence.Nodes[index], true);
-                currentSequence.Nodes.RemoveAt(index);
-                EditorUtility.SetDirty(currentSequence);
-                AssetDatabase.SaveAssets();
-                selectedNodeIndex = -1;
-            }
-        }
-
         private void CleanupNullNodes()
         {
-            if (currentSequence != null && currentSequence.Nodes != null)
+            if (m_CurrentSequence != null && m_CurrentSequence.Nodes != null)
             {
-                currentSequence.Nodes.RemoveAll(node => node == null);
-                EditorUtility.SetDirty(currentSequence);
+                m_CurrentSequence.Nodes.RemoveAll(node => node == null);
+                EditorUtility.SetDirty(m_CurrentSequence);
                 AssetDatabase.SaveAssets();
             }
         }
 
         private void ChangeNodeType(int index, VNNodeType newType)
         {
-            var isJson = VNSettingsManager.GetSettings().SaveDataAs == VNSettings.SaveDataMode.JSON;
-            VNNode oldNode = currentSequence.Nodes[index];
-            VNNode newNode = VNNodeFactory.CreateNode(newType, isJson);
+            VNNode oldNode = m_CurrentSequence.Nodes[index];
+            VNNode newNode = VNNodeFactory.CreateNode(newType);
             newNode.NodeName = oldNode.NodeName; // Retain the node name
-            currentSequence.Nodes[index] = newNode;
-        }
-
-        #region GUI Drawer
-        private void DrawDialogueNode(ref DialogueNode node)
-        {
-            int i = 0;
-            if (node.Character == null)
-                i = vn_Characters.Characters.IndexOf(vn_Characters.Characters.FirstOrDefault());
-            else
-                i = vn_Characters.Characters.IndexOf(node.Character);
-
-            i = EditorGUILayout.Popup("Select Character", i,
-            vn_Characters.Characters.ConvertAll(e => e.CharacterName).ToArray());
-
-            node.Character = vn_Characters.Characters[i];
-            node.Speaker = EditorGUILayout.TextField("Speaker", vn_Characters.Characters[i].CharacterName);
-
-            GUILayout.Label("Dialogue", EditorStyles.boldLabel);
-            node.DialogueText = EditorGUILayout.TextArea(node.DialogueText);
-            node.VoiceLine = EditorGUILayout.ObjectField(node.VoiceLine, typeof(AudioClip), false, GUILayout.Height(EditorGUIUtility.singleLineHeight)) as AudioClip;
-        }
-
-        private void DrawChoicesNode(ref ChoicesNode node)
-        {
-            if (node.Choices != null || node.Choices.Count != 0)
-            {
-                node.Prompt = EditorGUILayout.TextField("Prompt", node.Prompt);
-
-                for (int j = 0; j < node.Choices.Count; j++)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    node.Choices[j].Text = EditorGUILayout.TextField("Choice Text", node.Choices[j].Text);
-                    node.Choices[j].TargetID = EditorGUILayout.TextField("Target Node ID", node.Choices[j].TargetID);
-
-                    if (GUILayout.Button("Delete Choice", GUILayout.Width(100)))
-                        node.Choices.RemoveAt(j);
-
-                    EditorGUILayout.EndHorizontal();
-                }
-            }
-
-            if (GUILayout.Button("Add Choice"))
-                node.Choices.Add(new Choice());
-        }
-
-        private void DrawSpriteNode(ref SpriteNode node)
-        {
-            // Ensure characters exist
-            if (vn_Characters.Characters == null || vn_Characters.Characters.Count == 0)
-            {
-                EditorGUILayout.HelpBox("No characters available. Add characters to assign a sprite.", MessageType.Warning);
-                return;
-            }
-
-            // Character Selection
-            int selectedCharacterIndex = node.Character == null
-                ? 0
-                : vn_Characters.Characters.IndexOf(node.Character);
-
-            selectedCharacterIndex = Mathf.Clamp(selectedCharacterIndex, 0, vn_Characters.Characters.Count - 1);
-
-            selectedCharacterIndex = EditorGUILayout.Popup(
-                "Select Character",
-                selectedCharacterIndex,
-                vn_Characters.Characters.ConvertAll(c => c.CharacterName).ToArray()
-            );
-
-            node.Character = vn_Characters.Characters[selectedCharacterIndex];
-
-            // Ensure the selected character has emotions
-            if (node.Character.Emotions == null || node.Character.Emotions.Count == 0)
-            {
-                EditorGUILayout.HelpBox($"Character '{node.Character.CharacterName}' has no emotions. Add emotions to assign a sprite.", MessageType.Info);
-                return;
-            }
-
-            int selectedEmotionIndex = node.Character.EmotionsIndexOf(node.Emotion);
-
-            if (selectedEmotionIndex == -1) selectedEmotionIndex = 0;
-
-            selectedEmotionIndex = EditorGUILayout.Popup(
-                "Select Emotion",
-                selectedEmotionIndex,
-                node.Character.Emotions.ConvertAll(e => e.Emotion).ToArray()
-            );
-
-            node.Emotion = node.Character.Emotions[selectedEmotionIndex].Emotion;
-
-            // Assign Sprite
-            node.CharacterSprite = node.Character.Emotions[selectedEmotionIndex].Sprite;
-
-            // Display Assigned Sprite
-            EditorGUILayout.ObjectField("Selected Sprite", node.CharacterSprite, typeof(Sprite), false);
-        }
-
-        private void DrawBackgroundNode(ref BackgroundNode node)
-        {
-            node.Background = EditorGUILayout.ObjectField(node.Background, typeof(Sprite), false, GUILayout.Height(EditorGUIUtility.singleLineHeight)) as Sprite;
-
-            /*if (m_sprite != null)
-            {
-                var filePath = AssetDatabase.GetAssetPath(m_sprite);
-                GUILayout.Label($"{m_sprite.name} will load from: {filePath}");
-            }*/
+            m_CurrentSequence.Nodes[index] = newNode;
         }
         #endregion
     }

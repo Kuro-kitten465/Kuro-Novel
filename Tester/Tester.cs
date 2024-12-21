@@ -8,5 +8,5 @@ public class Tester : MonoBehaviour
     [SerializeField] private VNSequence sequence;
     [SerializeField] private TextMeshProUGUI textMeshProUGUI;
 
-    public void ONNN() => VNManager.Instance.StartVN(sequence);
+    public void ONNN() => VNManager.Instance.StartNovel(sequence);
 }

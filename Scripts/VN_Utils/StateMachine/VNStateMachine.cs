@@ -2,18 +2,16 @@ using UnityEngine;
 using KuroNovel.Utils;
 using System.Collections.Generic;
 using System;
-using TMPro;
 using KuroNovel.DataNode;
 
 namespace KuroNovel.Manager
 {
     public class VNStateMachine : MonoSingleton<VNStateMachine>
     {
+        [SerializeField] VNSequence m_Sequence;
         private StateMachine m_StateMachine;
         private Dictionary<Enum, IStateMachine> m_States = new Dictionary<Enum, IStateMachine>();
-
-        public VNSequence m_Sequence;
-        [SerializeField] private TextMeshProUGUI textMeshProUGUI;
+        private bool m_Running = false;
 
         public override void Awake()
         {
@@ -25,35 +23,38 @@ namespace KuroNovel.Manager
             m_States.Add(VNNodeType.Background, new BackgroundState());
         }
 
-        int i = 0;
+        int m_CurrentStateIndex = 0;
 
         private void OnGUI()
         {
-            textMeshProUGUI.text = $"sequence : {isNull} | statemac : {isNull1} | {m_Sequence.Nodes.Count}";
-
+            if (!m_Running)
             if (GUILayout.Button("Start"))
             {
                 m_StateMachine = new StateMachine(m_States, m_Sequence, OnComplete);
-                m_StateMachine.ChangeState(m_Sequence.Nodes[i]);
+                m_StateMachine.ChangeState(m_Sequence.Nodes[m_CurrentStateIndex]);
+                m_Running = true;
             }
+            
+            if (m_Running)
+            if (GUILayout.Button("Next State"))
+            {
+                m_CurrentStateIndex++;
+                if (m_CurrentStateIndex >= m_Sequence.Nodes.Count || m_CurrentStateIndex < 0)
+                {
+                    m_CurrentStateIndex = 0;
+                    VNUIManager.Instance.DeactiveBackground();
+                }
 
-            if (m_StateMachine != null)
-                if (m_StateMachine.CurrentState != null)
-                GUILayout.Label(m_StateMachine.CurrentState.ToString());
+                m_StateMachine.ChangeState(m_Sequence.Nodes[m_CurrentStateIndex]);
+            }
         }
-
-        bool isNull = false;
-        bool isNull1 = false;
 
         private void OnComplete()
         {
-            i++;
-            if (i == m_Sequence.Nodes.Count) i = 0;
 
-            m_StateMachine.ChangeState(m_Sequence.Nodes[i]);
         }
 
-        private void Update()
+        /*private void Update()
         {
             isNull = m_Sequence == null ? true : false;
             isNull1 = m_StateMachine == null ? true : false;
@@ -61,7 +62,7 @@ namespace KuroNovel.Manager
             if (m_StateMachine != null)
                 if (m_StateMachine.CurrentState != null &&
                     m_StateMachine.CurrentState == m_States[VNNodeType.Dialogue])
-                    m_StateMachine?.OnState(m_Sequence.Nodes[i]);
-        }
+                    m_StateMachine?.OnState(m_Sequence.Nodes[m_CurrentStateIndex]);
+        }*/
     }
 }

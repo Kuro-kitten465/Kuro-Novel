@@ -17,25 +17,29 @@ namespace KuroNovel.Manager
             Background, SpriteCenter, SpriteLeft, SpriteRight
         }
 
-        [Header("VN Panel Properties")]
-        [SerializeField] private CanvasGroup vn_GroupPanel;
-        [SerializeField] private GameObject vn_DialoguePanel;
-        [SerializeField] private GameObject vn_SpeakerPanel;
+        [Header("VN Panel & Canvas Properties")]
+        public CanvasGroup vn_GroupPanel;
+        public Canvas vn_BackgroundCanvas;
+        public Canvas vn_SpriteCanvas;
+        public Canvas vn_DialogueCanvas;
+        public Canvas vn_ChoicesCanvas;
 
         [Header("Dialogue Propeties")]
-        [SerializeField] private TextMeshProUGUI vn_DialogueText;
-        [SerializeField] private TextMeshProUGUI vn_SpeakerText;
+        public TextMeshProUGUI vn_DialogueText;
+        public Image vn_DialogueBackground;
+        public TextMeshProUGUI vn_SpeakerText;
+        public Image vn_SpeakerBackground;
 
         [Header("Choices Properties")]
-        [SerializeField] private GameObject vn_ChoiceButtonTemplate; // Button template for choices
-        [SerializeField] private VerticalLayoutGroup vn_ChoicesLayoutGroup; // Layout group for organizing buttons
+        public GameObject vn_ChoiceButtonTemplate;
+        public VerticalLayoutGroup vn_ChoicesLayoutGroup;
 
         [Header("Background Properties")]
-        [SerializeField] private Image vn_Background;
+        public Image vn_Background;
 
         [Header("Sprite Properties")]
-        [SerializeField] private GameObject[] vn_Sprites = new GameObject[3];
-        [SerializeField] private HorizontalLayoutGroup vn_SpriteLayoutGroup;
+        public GameObject[] vn_Sprites = new GameObject[3];
+        public HorizontalLayoutGroup vn_SpriteLayoutGroup;
 
         private List<GameObject> m_ActiveButtons = new();
         private List<GameObject> m_ActiveSprites = new();
@@ -47,29 +51,29 @@ namespace KuroNovel.Manager
         {
             base.Awake();
 
-            m_Objects.Add(VNObjectReference.Background, vn_Background.gameObject);
-            m_Objects.Add(VNObjectReference.SpriteCenter, vn_Sprites[0].gameObject);
+            //m_Objects.Add(VNObjectReference.Background, vn_Background.gameObject);
+            //m_Objects.Add(VNObjectReference.SpriteCenter, vn_Sprites[0].gameObject);
             //m_Objects.Add(VNObjectReference.SpriteLeft, vn_Sprites[1].gameObject);
             //m_Objects.Add(VNObjectReference.SpriteRight, vn_Sprites[2].gameObject);
 
-            m_ActiveSprites = vn_Sprites.ToList();
+            //m_ActiveSprites = vn_Sprites.ToList();
         }
 
         #region Dialogue Handler
         public void ShowDialogue(DialogueNode dialogueNode, Action onComplete)
         {
-            vn_DialoguePanel.SetActive(true);
+            vn_DialogueText.text = dialogueNode.DialogueText;
             vn_SpeakerText.text = dialogueNode.Speaker;
 
-            vn_DialogueText.text = "";
-            TextEnded = false;
-
-            StartCoroutine(WaitForInput(dialogueNode.DialogueText, onComplete));
+            vn_DialogueCanvas.gameObject.SetActive(true);
         }
 
-        public bool TextEnded = false;
+        public void DeactiveDialogue() =>
+            vn_DialogueCanvas.gameObject.SetActive(false);
 
-        private IEnumerator WaitForInput(string text, Action onComplete)
+        //public bool TextEnded = false;
+
+        /*private IEnumerator WaitForInput(string text, Action onComplete)
         {
             for (int i = 0; i < text.Length; i++)
             {
@@ -96,16 +100,11 @@ namespace KuroNovel.Manager
             // Hide the dialogue panel and invoke the completion callback
             vn_DialoguePanel.SetActive(false);
             onComplete?.Invoke();
-        }
+        }*/
 
         #endregion
         #region Choices Handler
 
-        /// <summary>
-        /// Displays a list of choices to the player.
-        /// </summary>
-        /// <param name="choices">List of choices to display.</param>
-        /// <param name="onChoiceSelected">Callback for when a choice is selected.</param>
         public void ShowChoices(ChoicesNode choicesNode, Action<int> onChoiceSelected)
         {
             ClearChoices();
@@ -154,9 +153,6 @@ namespace KuroNovel.Manager
         #region BG Handler
         public void ShowBackground(BackgroundNode backgroundNode, Action onComplete)
         {
-            // Use Resources.Load with the correct path
-            /*string resourcePath = backgroundNode.Background.Replace(Application.dataPath, "").TrimStart('/');
-            Sprite sprite = Resources.Load<Sprite>(resourcePath);*/
             if (backgroundNode == null)
             {
                 Debug.LogError($"Background sprite not found");
@@ -164,55 +160,29 @@ namespace KuroNovel.Manager
                 return;
             }
 
-            var isActive = vn_Background.IsActive();
-
-            if (isActive)
-            {
-
-            }
-
             vn_Background.sprite = backgroundNode.Background;
-
-            if (backgroundNode.InAnimation != VNAnimationType.None)
-            {
-                AnimationManager.Instance.PlayAnimation(backgroundNode.InAnimation, vn_Background.gameObject, onComplete);
-            }
-            else
-            {
-                onComplete?.Invoke();
-            }
+            vn_BackgroundCanvas.gameObject.SetActive(true);
         }
+
+        public void DeactiveBackground() => vn_BackgroundCanvas.gameObject.SetActive(false);
         #endregion
         #region Sprite Handler
         public void ShowSprite(SpriteNode spriteNode, Action onComplete)
         {
-            if (spriteNode.CharacterSprite == null)
+            /*if (spriteNode.CharacterSprite == null)
             {
                 Debug.LogError($"Background sprite not found");
                 onComplete?.Invoke();
                 return;
-            }
+            }*/
 
-            for (int i = 0; i < m_ActiveSprites.Count; i++)
-            {
-                var img = m_ActiveSprites[i].GetComponent<Image>();
+            var sprite = vn_Sprites[0].GetComponent<Image>();
+            sprite.sprite = spriteNode.CharacterSprite;
 
-                if (img.sprite == null)
-                {
-                    img.sprite = spriteNode.CharacterSprite;
-                    m_ActiveSprites[i].SetActive(true);
-                    AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeIn, m_ActiveSprites[i], onComplete);
-                }
-                else
-                {
-                    AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeOut, m_ActiveSprites[i], () =>
-                    {
-                        img.sprite = spriteNode.CharacterSprite;
-                        AnimationManager.Instance.PlayAnimation(VNAnimationType.FadeIn, m_ActiveSprites[i], onComplete);
-                    });
-                }
-            }
+            vn_Sprites[0].gameObject.SetActive(true);
         }
+
+        public void DeactiveSprite() => vn_Sprites[0].gameObject.SetActive(false);
         #endregion
     }
 }

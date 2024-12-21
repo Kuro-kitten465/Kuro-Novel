@@ -35,7 +35,6 @@ namespace KuroNovelEdior
             GUILayout.Space(10);
             GUILayout.Label("Backend Data Handle Mode", EditorStyles.boldLabel);
             settings.AssetHandler = (VNSettings.AssetHandlerMode)EditorGUILayout.EnumPopup("Asset Handle", settings.AssetHandler);
-            settings.SaveDataAs = (VNSettings.SaveDataMode)EditorGUILayout.EnumPopup("Save Mode", settings.SaveDataAs);
 
             //GUILayout.Space(10);
 

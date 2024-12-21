@@ -1,6 +1,5 @@
 using System;
 using KuroNovel.Utils;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace KuroNovel.DataNode

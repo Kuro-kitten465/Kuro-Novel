@@ -26,10 +26,10 @@ namespace KuroNovel.Utils
             else if (node is ChoicesNode choicesNode)
             {
                 // Display choice node
-                VNUIManager.Instance.ShowChoices(choicesNode, selectedChoice =>
+                /*VNUIManager.Instance.ShowChoices(choicesNode, selectedChoice =>
                 {
                     //stateMachine.NextNode();
-                });
+                });*/
             }
             else if (node is BackgroundNode backgroundNode)
             {
@@ -50,8 +50,8 @@ namespace KuroNovel.Utils
         {
             if (node is DialogueNode)
             {
-                if (Input.GetKeyDown(KeyCode.Space))
-                    VNUIManager.Instance.TextEnded = true;
+                /*if (Input.GetKeyDown(KeyCode.Space))
+                    VNUIManager.Instance.TextEnded = true;*/
             }
         }
 

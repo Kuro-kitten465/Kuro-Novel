@@ -1,5 +1,4 @@
 using KuroNovel.DataNode;
-using Newtonsoft.Json;
 using UnityEngine;
 using KuroNovel.Utils;
 using System.IO;
@@ -24,7 +23,7 @@ namespace KuroNovel.Manager
         /// Starts the VN system by loading a sequence and displaying the VNPanel scene.
         /// </summary>
         /// <param name="sequencePath">The path to the VN sequence JSON file.</param>
-        public void StartVN(VNSequence sequence)
+        public void StartNovel(VNSequence sequence)
         {
             LoadVNPanelScene(() =>
             {

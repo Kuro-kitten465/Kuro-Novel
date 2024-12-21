@@ -11,10 +11,10 @@ namespace KuroNovel.Utils
         {
             Debug.Log($"{this} Enter");
             var n = node as ChoicesNode;
-            VNUIManager.Instance.ShowChoices(n, selectedChoice =>
+            /*VNUIManager.Instance.ShowChoices(n, selectedChoice =>
             {
                     onComplete.Invoke();
-            });
+            });*/
         }
 
         public void ExitState(VNNode node, Action onComplete)

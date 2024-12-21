@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fbeedf30bf5ae348a9f8cce79b77879, type: 3}
   m_Name: VNSettings
   m_EditorClassIdentifier: 
-  CharactersFolder: Assets/Kuro-Novel-for-Unity/Resources/VNAssets/Characters/
+  CharactersFolder: Assets/Kuro-Novel/Resources/VNAssets/Characters/
   BackgroundsFolder: Assets/Resources/VNAssets/Backgrounds/
   SpritesFolder: Assets/Resources/VNAssets/Sprites/
-  SequencesFolder: Assets/Resources/VNAssets/Sequence/
+  SequencesFolder: Assets/Kuro-Novel/Resources/VNAssets/Sequence/
   AssetHandler: 0
-  SaveDataAs: 0
